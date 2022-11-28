@@ -22,8 +22,8 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 COPY --from=build dist dist
 COPY --from=build main.py gunicorn.config.py ./
 
-
 RUN pip install -U --no-cache-dir pip dist/*.whl && \
     rm -rf dist
+RUN pip install python-multipart
 
 CMD ["gunicorn", "main:app", "-c", "gunicorn.config.py"]
