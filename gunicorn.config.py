@@ -12,7 +12,7 @@ bind = f"{host}:{port}"
 backlog = env("GUNICORN_BACKLOG", 2048)
 
 # The number of worker processes for handling requests.
-workers = env("GUNICORN_WORKERS", cpu_count())
+workers = env("GUNICORN_WORKERS", cpu_count() // 2)
 
 # The type of workers to use.
 worker_class = env("GUNICORN_WORKER_CLASS", "uvicorn.workers.UvicornWorker")
