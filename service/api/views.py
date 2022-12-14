@@ -6,6 +6,7 @@ from pydantic import BaseModel
 
 from service.api.exceptions import UserNotFoundError, ModelNotFoundError
 from service.log import app_logger
+from service.reco_models import HW4
 
 
 class RecoResponse(BaseModel):
@@ -18,10 +19,13 @@ class LoginData(BaseModel):
     token_type: str
 
 
+HW4_model = HW4("checkpoints/main_model.joblib", "checkpoints/popular_model.joblib",
+                "checkpoints/dataset.joblib")
+
 router = APIRouter()
 
 USER_DATABASE = {'test_user': {'login': 'test_user', 'password': 'qwerty'}}
-MODEL_LIST = ['dummy_model']
+MODEL_LIST = ['dummy_model', 'HW4']
 AUTH_TOKEN = "test_auth"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -32,7 +36,8 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
     responses={401: {"description": "Not authenticated"}},
 )
 async def health(
-    token: str = Depends(oauth2_scheme)) -> str:
+    token: str = Depends(oauth2_scheme)
+) -> str:
     return "I am alive"
 
 
@@ -59,9 +64,14 @@ async def get_reco(
     if user_id > 10 ** 9:
         raise UserNotFoundError(error_message=f"User {user_id} not found")
 
-    k_recs = request.app.state.k_recs
-    reco = list(range(k_recs))
-    return RecoResponse(user_id=user_id, items=reco)
+    if model_name == 'dummy_model':
+        k_recs = request.app.state.k_recs
+        reco = list(range(k_recs))
+        return RecoResponse(user_id=user_id, items=reco)
+
+    if model_name == 'HW4':
+        reco = HW4_model(user_id)
+        return RecoResponse(user_id=user_id, items=reco.tolist())
 
 
 @router.post(

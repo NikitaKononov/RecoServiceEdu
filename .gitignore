@@ -67,3 +67,6 @@ venv.bak/
 .mypy_cache/
 
 
+/checkpoints/dataset.joblib
+/checkpoints/main_model.joblib
+/checkpoints/popular_model.joblib
