@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from service.api.exceptions import UserNotFoundError, ModelNotFoundError
 from service.log import app_logger
-
+from service.reco_models import PopularModel, TFIDF15Model, TFIDF15_precalc_Model
 
 class RecoResponse(BaseModel):
     user_id: int
@@ -17,11 +17,14 @@ class LoginData(BaseModel):
     access_token: str
     token_type: str
 
+popular = PopularModel()
+tfidf15 = TFIDF15Model()
+HW3 = TFIDF15_precalc_Model()
 
 router = APIRouter()
 
 USER_DATABASE = {'test_user': {'login': 'test_user', 'password': 'qwerty'}}
-MODEL_LIST = ['dummy_model']
+MODEL_LIST = ['dummy_model', 'HW3', 'popular', 'tfidf15']
 AUTH_TOKEN = "test_auth"
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -59,9 +62,22 @@ async def get_reco(
     if user_id > 10 ** 9:
         raise UserNotFoundError(error_message=f"User {user_id} not found")
 
-    k_recs = request.app.state.k_recs
-    reco = list(range(k_recs))
-    return RecoResponse(user_id=user_id, items=reco)
+    if model_name == 'dummy_model':
+        k_recs = request.app.state.k_recs
+        reco = list(range(k_recs))
+        return RecoResponse(user_id=user_id, items=reco)
+
+    if model_name == 'HW3':
+        reco = HW3(user_id)
+        return RecoResponse(user_id=user_id, items=reco)
+
+    if model_name == 'popular':
+        reco = popular(user_id)
+        return RecoResponse(user_id=user_id, items=reco)
+
+    if model_name == 'tfidf15':
+        reco = tfidf15(user_id)
+        return RecoResponse(user_id=user_id, items=reco)
 
 
 @router.post(
